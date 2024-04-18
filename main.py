@@ -135,7 +135,7 @@ class Elevator:
                     # elevator reached next floor and waiting to take passengers
                     if (time_to_reach_next - time_elapsed) <= 0.0001:
                         order.append(current_event.floor)
-                        print('[Visited floor] ', current_event.floor, end='\t')
+                        print('[Visited] floor ', current_event.floor, end='\t')
                         print('at time: {:2f} sec....'.format(time_elapsed))
                         self.current_floor = current_event.floor
                         dest_floor = current_event.dst
@@ -147,7 +147,10 @@ class Elevator:
                         # take ALL available event into account
                         # based on inserted event to prioritize nearby on-way floors
                         if dest_floor != -1:
+                            print('(Boarded) at floor {}!'.format(self.current_floor))
                             self.insert_destination(dest_floor, time_elapsed)
+                        else:
+                            print('(De-Boarded) at floor {}!'.format(self.current_floor))
 
                         self.moving = False
 
@@ -181,19 +184,25 @@ class Elevator:
         # create a map of all events which come in way and store its distance from current destination to prioritize
         valid_event_distance = {}
         invalid_events = []
+        dest_present = False
         if len(self.dest_queue) > 0:
             priority_dest = self.dest_queue[0]
             self.dest_queue.popleft()
 
-            valid_event_distance[priority_dest] = abs(self.current_floor - priority_dest.floor)
 
             # check which events are on-way of destination and add it to the final queue
             for scheduled_events in self.call_queue:
+                if scheduled_events.dst == priority_dest.floor:
+                    dest_present = True
                 if (scheduled_events.floor in range(self.current_floor, priority_dest.floor)
                         and scheduled_events.up == priority_dest.up):
                     valid_event_distance[scheduled_events] = abs(self.current_floor - scheduled_events.floor)
                 else:
                     invalid_events.append(scheduled_events)
+
+            if not dest_present:
+                valid_event_distance[priority_dest] = abs(self.current_floor - priority_dest.floor)
+
         # else:
         #     for scheduled_events in self.call_queue:
         #         # distance between current floor and newly added floor should be more than 1 floor to stop
