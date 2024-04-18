@@ -1,9 +1,6 @@
 import sys
-import os
 import time
-import threading
 from collections import deque
-
 
 
 class Event:
@@ -20,6 +17,7 @@ class Event:
             direction = "up"
         print('* Call made at floor {} going {} at time: {} secs.'.format(
             self.floor, direction, self.timestamp))
+
 
 class Elevator:
     def __init__(self, numFloor=10, current_floor=0, moving=False, open=False, occupied=False, max_cap=100):
@@ -123,7 +121,6 @@ class Elevator:
                 # make it available
                 self.call_queue.append(self.all_events[next_event_id])
                 self.all_events[next_event_id].display()
-                # self.rearrange_call_queue()
                 next_event_id += 1
 
             if len(self.call_queue) > 0:
@@ -143,9 +140,7 @@ class Elevator:
                         time.sleep(self.static)
                         self.call_queue.popleft()
 
-                        # insert the destination for current event and reorder queue
-                        # take ALL available event into account
-                        # based on inserted event to prioritize nearby on-way floors
+                        # insert the destination for current event as priority and reorder queue
                         if current_event.dst != -1:
                             self.insert_destination(dest_floor, time_elapsed)
 
@@ -178,6 +173,7 @@ class Elevator:
 
     def rearrange_call_queue(self):
         priority_dest = None
+
         # create a map of all events which come in way and store its distance from current destination to prioritize
         valid_event_distance = {}
         invalid_events = []
@@ -225,7 +221,6 @@ if __name__ == '__main__':
     # format: <floor_called><direction><destination_floor>
     # ex: "4u6" means elevator called on floor 4, to go up, with destination floor 6
     input_floors = ["4u6", "3d0", "0u9", "5u7", "3d2", "4u9", "9d2"]
-    # input_floors = ["4u6", "3d0", "0u9", "5u7"]
 
     elevator.schedule_calls(input_floors)
 
