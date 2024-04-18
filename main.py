@@ -5,7 +5,6 @@ import threading
 from collections import deque
 
 
-
 class Event:
     def __init__(self, floor=0, up=0, dst=0, timestamp=0.0):
         super(Event, self).__init__()
@@ -14,12 +13,13 @@ class Event:
         self.dst = dst
         self.timestamp = timestamp
 
-    def display(self):
+    def display(self, message='?'):
         direction = "dn"
         if self.up:
             direction = "up"
-        print('* Call made at floor {} going {} at time: {} secs.'.format(
+        print('{} at floor {} going {} at time: {} secs.'.format(message,
             self.floor, direction, self.timestamp))
+
 
 class Elevator:
     def __init__(self, numFloor=10, current_floor=0, moving=False, open=False, occupied=False, max_cap=100):
@@ -122,7 +122,7 @@ class Elevator:
             if next_event_id < num_events_total and (next_event_available_ts - time_elapsed) <= 0.0001:
                 # make it available
                 self.call_queue.append(self.all_events[next_event_id])
-                self.all_events[next_event_id].display()
+                self.all_events[next_event_id].display(message='* Call made')
                 # self.rearrange_call_queue()
                 next_event_id += 1
 
@@ -146,7 +146,7 @@ class Elevator:
                         # insert the destination for current event and reorder queue
                         # take ALL available event into account
                         # based on inserted event to prioritize nearby on-way floors
-                        if current_event.dst != -1:
+                        if dest_floor != -1:
                             self.insert_destination(dest_floor, time_elapsed)
 
                         self.moving = False
@@ -185,31 +185,40 @@ class Elevator:
             priority_dest = self.dest_queue[0]
             self.dest_queue.popleft()
 
+            valid_event_distance[priority_dest] = abs(self.current_floor - priority_dest.floor)
+
             # check which events are on-way of destination and add it to the final queue
-            for events in self.call_queue:
-                direction = priority_dest.up
-                if events.floor in range(self.current_floor, self.dest_floor) and events.up == direction:
-                    valid_event_distance[events] = abs(self.current_floor - events.floor)
+            for scheduled_events in self.call_queue:
+                if (scheduled_events.floor in range(self.current_floor, priority_dest.floor)
+                        and scheduled_events.up == priority_dest.up):
+                    valid_event_distance[scheduled_events] = abs(self.current_floor - scheduled_events.floor)
                 else:
-                    invalid_events.append(events)
+                    invalid_events.append(scheduled_events)
+        # else:
+        #     for scheduled_events in self.call_queue:
+        #         # distance between current floor and newly added floor should be more than 1 floor to stop
+        #         if abs(self.current_floor - scheduled_events.floor) > 1:
+        #             valid_event_distance[scheduled_events] = abs(self.current_floor - scheduled_events.floor)
+        #         else:
+        #             invalid_events.append(scheduled_events)
 
         temp_queue = deque()
-        if priority_dest:
-            temp_queue.append(priority_dest)
 
         for key, value in sorted(valid_event_distance.items(), key=lambda item: item[1]):
             temp_queue.append(key)
 
-        for events in invalid_events:
-            temp_queue.append(events)
+        for scheduled_events in invalid_events:
+            temp_queue.append(scheduled_events)
 
         self.call_queue = temp_queue
-
+        # self.display_queue(self.call_queue)
         return
 
-    def display_queue(self):
-        for id, event in enumerate(self.call_queue):
-            event.display()
+    def display_queue(self, queue):
+        print('***************************************')
+        for id, event in enumerate(queue):
+            event.display(message='! Disp ')
+        print('***************************************')
 
     def log_time(self):
         self.start_time = time.time()
@@ -224,7 +233,7 @@ if __name__ == '__main__':
     # provide the elevator call events for simulation
     # format: <floor_called><direction><destination_floor>
     # ex: "4u6" means elevator called on floor 4, to go up, with destination floor 6
-    input_floors = ["4u6", "3d0", "0u9", "5u7", "3d2", "4u9", "9d2"]
+    input_floors = ["4u6", "3d0", "0u9", "5u7", "3d2", "4u7", "9d2"]
     # input_floors = ["4u6", "3d0", "0u9", "5u7"]
 
     elevator.schedule_calls(input_floors)
