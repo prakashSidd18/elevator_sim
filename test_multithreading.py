@@ -2,16 +2,6 @@ import threading
 import time
 import sys
 
-def background():
-    while True:
-        time.sleep(3)
-        print('disarm me by typing disarm')
-
-
-def other_function():
-    print('You disarmed me! Dying now.')
-
-
 data = []
 
 
@@ -26,7 +16,7 @@ input_thread.start()
 input_thread.join()
 while True:
     if data[-1] == 'q':
-        print('Final queue', data)
+        print('Final queue', data[:-1])
         print('Ending input!')
         sys.exit()
     else:
