@@ -14,12 +14,12 @@ class Event:
         self.dst = dst
         self.timestamp = timestamp
 
-    def display(self, id):
-        dir = "down"
+    def display(self):
+        dir = "dn"
         if self.up:
             dir = "up"
-        print('{}. Call made at floor {} going {} to destination {} at time {}'.format(
-            id, self.floor, dir, self.dst, self.timestamp))
+        print('* Call made at floor {} going {} at time: {} secs.'.format(
+            self.floor, dir, self.timestamp))
 
 class Elevator:
     def __init__(self, numFloor=10, current_floor=0, moving=False, open=False, occupied=False, max_cap=100):
@@ -36,12 +36,13 @@ class Elevator:
         self.speed = 1.0
 
         # assume remains static at a floor for 2 secs. and user inputs the next call within this time
-        self.static = 2.0
+        self.static = 5
 
         self.start_time = 0.0
         self.end_time = 0.0
 
         self.queue = deque()
+        self.all_events = deque()
 
     def info(self):
         print('Num Floors:', self.numFloor)
@@ -91,57 +92,65 @@ class Elevator:
             destination= int(events[2])
             current_ts = time_bn_calls
             new_event = Event(floor=floor_call, up=direction, dst=destination, timestamp=current_ts)
-            self.queue.append(new_event)
-            time_bn_calls += 3
+            self.all_events.append(new_event)
+            time_bn_calls += 5
 
-        self.display_queue()
+        # self.display_queue()
         print('All calls valid! Run elevator!!')
 
     def run_elevator(self):
-        if len(self.queue) == 0:
+        if len(self.all_events) == 0:
             print('No calls made!!')
             return
 
         order = []
         print('Elevator Running....', end='\r')
         self.log_time()
-        next_event = None
+
         time_to_reach_next = 0.0
-        current_event = self.queue[0]
-        while current_event is not None:
+        next_event_id = 0
+        num_events_total = len(self.all_events)
+
+        while True:
             time_elapsed = time.time() - self.start_time
             print('Time elapsed {:2f} sec....'.format(time_elapsed), end='\r')
-            if len(self.queue) > 1:
-                next_event = self.queue[1]
-            else:
-                next_event = None
 
-            numEvents = len(self.queue)
+            if next_event_id < num_events_total:
+                next_event_available_ts = self.all_events[next_event_id].timestamp
+            # if next event occurred at current time stamp, make it available from the queue
+            if next_event_id < num_events_total and (next_event_available_ts - time_elapsed) <= 0.0001:
+                # make it available
+                self.queue.append(self.all_events[next_event_id])
+                self.all_events[next_event_id].display()
+                next_event_id += 1
 
-            if not self.moving:
-                time_to_reach_next = self.set_next_floor(current_event.floor, time_elapsed)
+            if len(self.queue) > 0:
+                current_event = self.queue[0]
 
-            # if next event occured before elevator reached it's destination
-            # if (next_event.timestamp - time_elapsed) <= 0.01:
-            #     # add to the queue
-            #     pass
+                if not self.moving:
+                        time_to_reach_next = self.set_next_floor(current_event.floor, time_elapsed)
+                else:
+                    # elevator reached next floor and waiting to take passengers
+                    if (time_to_reach_next - time_elapsed) <= 0.0001:
+                        order.append(current_event.floor)
+                        print('[Visited floor] ', current_event.floor, end='\t')
+                        print('at time: {:2f} sec....'.format(time_elapsed))
+                        self.current_floor = current_event.floor
 
-            # elevator reached next floor and waiting to take passengers
-            if (time_to_reach_next - time_elapsed) <= 0.01:
-                order.append(current_event.floor)
-                print('Visited floor: ', current_event.floor)
-                self.current_floor = current_event.floor
+                        # remains static at floor reached for given seconds
+                        time.sleep(self.static)
+                        self.queue.popleft()
 
-                # remains static at floor reached for given seconds
-                time.sleep(self.static)
-                self.queue.popleft()
-                self.moving = False
-                # time_to_reach_next = self.set_next_floor(current_event.dst, time_elapsed)
-                current_event = next_event
+                        # insert the destination for current event and reorder queue
+                        # take ALL available event into account based on inserted event to prioritize nearby on-way floors
 
+                        self.moving = False
 
+                        # time_to_reach_next = self.set_next_floor(current_event.dst, time_elapsed)
+            elif next_event_id == num_events_total:
+                break
 
-        # if all floors scheduled and called
+        # all floors scheduled and called
         print('Simulation done!')
         print('Order of floors visited:', order)
 
