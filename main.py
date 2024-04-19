@@ -48,8 +48,8 @@ if __name__ == '__main__':
 
         print('Calls: ', input_floors)
         print('Made at times: ', timestamps)
-        # input('Press [Enter] to start simulation...')
-        time.sleep(1)
+        input('Press [Enter] to start simulation...')
+        # time.sleep(1)
         elevator.schedule_calls(input_floors, timestamps)
 
         elevator.run_elevator()

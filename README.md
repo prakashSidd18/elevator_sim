@@ -57,6 +57,14 @@ The simulation starts by calling the `run_elevator` function. The execution foll
 7. Repeat from Step 3 until call queue is not empty and all calls on the global stack are not executed
 8. If done, display the final order of floors visited
 
+### Assumptions
+1. Elevator has unlimited capacity.
+2. Elevator remains static once it reaches a floor for `t=5secs.` (configurable) for either boarding or de-boarding. 
+The destination call is made within this time period. This can be changed by changing the `static` parameter in the elevator class.
+3. Elevator moves with a constant speed of `1 floor per second`. 
+This can also be configured by changing the `speed` parameter in the elevator class.
+4. The current floors are updated as the elevator moves. 
+This can be changed by setting the `update_floor_if_moving` to `False` to prioritize calls made by floors nearby last visited floor.
 
 ### Scheduling
 
