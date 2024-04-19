@@ -3,7 +3,8 @@ import time
 import elevator
 import random
 if __name__ == '__main__':
-    elevator = elevator.Elevator(numFloor=10)
+    update_floor = True
+    elevator = elevator.Elevator(numFloor=10, update_floor_if_moving=update_floor)
     print('Elevator created!')
     elevator.info()
     print('***************************************')
@@ -36,14 +37,6 @@ if __name__ == '__main__':
              {'input_floors': ["4u6", "3d0", "0u9", "5u7", "3d2", "4u7", "9d2"],
               'timestamps': None},
              ]
-    # calls = [
-    #         {'input_floors': ["4u6", "3d0", "0u9", "5u7"],
-    #          'timestamps': [0, 8, 34, 36]},
-    #         {'input_floors': ["4u6", "3d0", "0u9", "5u7", "3d2", "4u7", "9d2"],
-    #          'timestamps': list(range(0, 7 * 3, 3))},
-    #          {'input_floors': ["4u6", "3d0", "0u9", "5u7", "3d2", "4u7", "9d2"],
-    #           'timestamps': None},
-    #          ]
 
     for call in calls:
         print('***********New Sim**************')
@@ -61,7 +54,7 @@ if __name__ == '__main__':
 
         elevator.run_elevator()
 
-        elevator.reset()
+        elevator.reset(update_floor=update_floor)
 
 
 

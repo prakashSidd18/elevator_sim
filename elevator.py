@@ -7,7 +7,8 @@ import events as e
 
 
 class Elevator:
-    def __init__(self, numFloor=10, current_floor=0, moving=False, open=False, occupied=False, max_cap=100):
+    def __init__(self, numFloor=10, current_floor=0, moving=False, open=False, occupied=False,
+                 max_cap=100, update_floor_if_moving=False):
         super(Elevator, self).__init__()
         self.numFloor = numFloor
         self.current_floor = current_floor
@@ -16,6 +17,7 @@ class Elevator:
         self.open = open
         self.occupied = occupied
         self.max_capacity = max_cap
+        self.update_floor_if_moving = update_floor_if_moving
 
         # assume 1 second to move 1 floor
         self.speed = 1.0
@@ -30,7 +32,14 @@ class Elevator:
         self.call_queue = deque()
         self.dest_queue = deque()
 
-    def reset(self):
+    def reset(self, update_floor):
+        self.current_floor = 0
+        self.dest_floor = 0
+        self.moving = False
+        self.open = False
+        self.occupied = False
+        self.max_capacity = 100
+        self.update_floor_if_moving = update_floor
 
         self.start_time = 0.0
         self.end_time = 0.0
@@ -38,7 +47,6 @@ class Elevator:
         self.all_events = deque()
         self.call_queue = deque()
         self.dest_queue = deque()
-
 
     def info(self):
         print('Num Floors:', self.numFloor)
@@ -48,6 +56,11 @@ class Elevator:
             print('Moving!')
         else:
             print('Waiting for call!')
+        if self.update_floor_if_moving:
+            print('Updating floors when moving!')
+        else:
+            print('NOT Updating floors when moving!')
+
 
     def check_valid_call(self, call):
         if len(call) != 3:
@@ -111,13 +124,14 @@ class Elevator:
         print('Elevator Running....')
         self.log_time()
 
-        time_to_reach_next = 0.0
+        time_to_reach_next_dest = 0.0
+        time_to_reach_next_floor = 0.0
         next_event_id = 0
         num_events_total = len(self.all_events)
         current_event = None
         while True:
             time_elapsed = time.time() - self.start_time
-            print('Time elapsed {:2f} sec....'.format(time_elapsed), end='\r')
+            print('Elevator at floor [{}] ....'.format(self.current_floor), end='\r')
 
             # Keep checking when new calls are made
             # [TODO: multi-threading] should be done on a separate thread in a thread-safe manner
@@ -128,7 +142,11 @@ class Elevator:
                     # make it available
                     self.call_queue.append(self.all_events[next_event_id])
                     self.all_events[next_event_id].display(message='* Call made')
-                    self.rearrange_call_queue()
+
+                    # only rearrange queue on call if current floor is updating
+                    if self.update_floor_if_moving:
+                        self.rearrange_call_queue()
+
                     next_event_id += 1
 
             # if call queue has elements, execute the next call in queue
@@ -136,12 +154,26 @@ class Elevator:
                 current_event = self.call_queue[0]
                 if not self.moving:
                     # self.display_queue(self.call_queue)
-                    time_to_reach_next = self.set_next_floor(current_event.floor, time_elapsed)
+                    time_to_reach_next_dest = self.set_next_floor(current_event.floor, time_elapsed)
+                    time_to_reach_next_floor = time_elapsed + self.speed
                 else:
-                    # [TODO] update current floor while elevator moving to keep track of nearby floors
+                    # update current floor while elevator moving to keep track of nearby floors
+                    if self.update_floor_if_moving and (time_to_reach_next_floor - time_elapsed) <= 0.0001:
+                        # update floor based on direction
+                        if self.current_floor <= self.dest_floor and self.current_floor != (self.numFloor-1):
+                            # moving up
+                            self.current_floor += 1
+                        elif self.current_floor != 0:
+                            # moving down
+                            self.current_floor -= 1
+
+                        # only rearrange queue on call if current floor is updating
+                        self.rearrange_call_queue()
+
+                        time_to_reach_next_floor = time_elapsed + self.speed
 
                     # elevator reached next floor and waiting to take passengers
-                    if (time_to_reach_next - time_elapsed) <= 0.0001:
+                    if (time_to_reach_next_dest - time_elapsed) <= 0.0001:
                         order.append(current_event.floor)
                         print('[Visited] floor ', current_event.floor, end='\t')
                         print('at time: {:2f} sec....'.format(time_elapsed))
@@ -166,8 +198,8 @@ class Elevator:
                             time.sleep(self.static)
                             print('(De-Boarded) at floor {}!'.format(self.current_floor))
 
-                        self.rearrange_call_queue()
                         self.moving = False
+                        self.rearrange_call_queue()
 
             elif next_event_id == num_events_total:
                 break
@@ -241,7 +273,7 @@ class Elevator:
                 else:
                     invalid_events.append(scheduled_events)
         else:
-            # a new call was inserted; check if elevator is nearby
+            # a new call was inserted or elevator moved another floor; check if elevator is nearby
             # re-organize the queue to take new event into account while moving
             for scheduled_events in self.call_queue:
                 valid_event_distance[scheduled_events] = abs(self.current_floor - scheduled_events.floor)
