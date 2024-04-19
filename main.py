@@ -27,21 +27,19 @@ if __name__ == '__main__':
     #           'timestamps': None},
     #          {'input_floors': ["4u6", "3d0", "0u9", "5u7", "3d2", "4u7", "9d2"],
     #           'timestamps': list(range(0, 7*3, 3))},
-    #          {'input_floors': ["4u6", "3d0", "0u9", "5u7", "3d2", "4u7", "9d2"],
+    #           {'input_floors': ["4u6", "3d0", "0u9", "5u7", "3d2", "4u7", "9d2"],
     #           'timestamps': [8, 20, 30, 32, 45, 50, 57]},
+    #           {'input_floors': ["4u6", "3d0", "0u9", "5u7", "3d2", "4u7", "9d2"],
+    #           'timestamps': [17, 24, 47, 48, 54, 59, 69]},
     #          {'input_floors': ["4u6", "3d0", "0u9", "5u7", "3d2", "4u7", "9d2"],
     #           'timestamps': None},
     #          ]
-    calls = [{'input_floors': ["9d2"],
-              'timestamps': None},
-             {'input_floors': ["4u6", "3d0", "0u9", "5u7", "3d2", "4u7", "9d2"],
+    calls = [{'input_floors': ["4u6", "3d0", "0u9", "5u7", "3d2", "4u7", "9d2"],
               'timestamps': list(range(0, 7 * 3, 3))},
              {'input_floors': ["4u6", "3d0", "0u9", "5u7", "3d2", "4u7", "9d2"],
+              'timestamps': [2, 26, 28, 40, 41, 50, 68]},
+             {'input_floors': ["4u6", "3d0", "0u9", "5u7", "3d2", "4u7", "9d2"],
               'timestamps': None},
-             {'input_floors': ["4u6", "3d0", "0u9", "5u7", "3d2", "4u7", "9d2"],
-              'timestamps': [8, 20, 30, 32, 45, 50, 57]},
-             {'input_floors': ["4u6", "3d0", "0u9", "5u7", "3d2", "4u7", "9d2"],
-              'timestamps': [17, 24, 47, 48, 54, 59, 69]},
              ]
 
     for call in calls:

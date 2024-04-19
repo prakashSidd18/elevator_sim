@@ -164,6 +164,7 @@ class Elevator:
                             # [TODO] check if current floor in call list,
                             # [TODO] if it is make it as priority boarding
 
+                        self.rearrange_call_queue()
                         self.moving = False
 
                         # time_to_reach_next = self.set_next_floor(current_event.dst, time_elapsed)
@@ -187,7 +188,6 @@ class Elevator:
             direction = 1
         new_event = e.Event(floor=dst, up=direction, dst=-1, timestamp=time_elapsed)
         self.dest_queue.append(new_event)
-        self.rearrange_call_queue()
 
         return
 
@@ -220,20 +220,15 @@ class Elevator:
             if not dest_present:
                 valid_event_distance[priority_dest] = abs(self.current_floor - priority_dest.floor)
 
-        # [TODO] if destination queue is empty
-        # else:
-        #     if self.current_floor - self.dest_floor > 0:
-        #         direction = 0
-        #     else:
-        #         direction = 1
-        #     # iterate through events already in call queue
-        #     for scheduled_events in self.call_queue:
-        #         # check which events are on-way of destination and add it to the final queue
-        #         if (scheduled_events.floor in range(self.current_floor, self.dest_floor)
-        #                 and scheduled_events.up == direction):
-        #             valid_event_distance[scheduled_events] = abs(self.current_floor - scheduled_events.floor)
-        #         else:
-        #             invalid_events.append(scheduled_events)
+        # [TODO] if destination queue is empty, check if current floor in queue and prioritize it
+        else:
+            # iterate through events already in call queue
+            for scheduled_events in self.call_queue:
+                # check if current floor in queue to board
+                if scheduled_events.floor == self.current_floor:
+                    valid_event_distance[scheduled_events] = abs(self.current_floor - scheduled_events.floor)
+                else:
+                    invalid_events.append(scheduled_events)
 
 
         temp_queue = deque()
