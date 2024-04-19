@@ -17,30 +17,33 @@ if __name__ == '__main__':
     ## if timestamps specified as None, random timestamps will be generated for each call
     '''
 
-    # calls = [{'input_floors': ["0u9"],
-    #           'timestamps': None},
-    #          {'input_floors': ["3d0", "5u7"],
-    #           'timestamps': None},
-    #          {'input_floors': ["4u6", "3d0", "0u9", "5u7"],
-    #           'timestamps': list(range(0, 4*10, 10))},
-    #          {'input_floors': ["4u6", "3d0", "0u9", "5u7"],
-    #           'timestamps': None},
-    #          {'input_floors': ["4u6", "3d0", "0u9", "5u7", "3d2", "4u7", "9d2"],
-    #           'timestamps': list(range(0, 7*3, 3))},
-    #           {'input_floors': ["4u6", "3d0", "0u9", "5u7", "3d2", "4u7", "9d2"],
-    #           'timestamps': [8, 20, 30, 32, 45, 50, 57]},
-    #           {'input_floors': ["4u6", "3d0", "0u9", "5u7", "3d2", "4u7", "9d2"],
-    #           'timestamps': [17, 24, 47, 48, 54, 59, 69]},
-    #          {'input_floors': ["4u6", "3d0", "0u9", "5u7", "3d2", "4u7", "9d2"],
-    #           'timestamps': None},
-    #          ]
-    calls = [{'input_floors': ["4u6", "3d0", "0u9", "5u7", "3d2", "4u7", "9d2"],
-              'timestamps': list(range(0, 7 * 3, 3))},
+    calls = [{'input_floors': ["0u9"],
+              'timestamps': None},
+             {'input_floors': ["3d0", "5u7"],
+              'timestamps': None},
+             {'input_floors': ["4u6", "3d0", "0u9", "5u7"],
+              'timestamps': list(range(0, 4*10, 10))},
+             {'input_floors': ["4u6", "3d0", "0u9", "5u7"],
+              'timestamps': [0, 8, 34, 36]},
+             {'input_floors': ["4u6", "3d0", "0u9", "5u7"],
+              'timestamps': None},
              {'input_floors': ["4u6", "3d0", "0u9", "5u7", "3d2", "4u7", "9d2"],
-              'timestamps': [2, 26, 28, 40, 41, 50, 68]},
+              'timestamps': list(range(0, 7*3, 3))},
+             {'input_floors': ["4u6", "3d0", "0u9", "5u7", "3d2", "4u7", "9d2"],
+              'timestamps': [8, 20, 30, 32, 45, 50, 57]},
+             {'input_floors': ["4u6", "3d0", "0u9", "5u7", "3d2", "4u7", "9d2"],
+              'timestamps': [17, 24, 47, 48, 54, 59, 69]},
              {'input_floors': ["4u6", "3d0", "0u9", "5u7", "3d2", "4u7", "9d2"],
               'timestamps': None},
              ]
+    # calls = [
+    #         {'input_floors': ["4u6", "3d0", "0u9", "5u7"],
+    #          'timestamps': [0, 8, 34, 36]},
+    #         {'input_floors': ["4u6", "3d0", "0u9", "5u7", "3d2", "4u7", "9d2"],
+    #          'timestamps': list(range(0, 7 * 3, 3))},
+    #          {'input_floors': ["4u6", "3d0", "0u9", "5u7", "3d2", "4u7", "9d2"],
+    #           'timestamps': None},
+    #          ]
 
     for call in calls:
         print('***********New Sim**************')

@@ -108,33 +108,38 @@ class Elevator:
             return
 
         order = []
-        print('Elevator Running....', end='\r')
+        print('Elevator Running....')
         self.log_time()
 
         time_to_reach_next = 0.0
         next_event_id = 0
         num_events_total = len(self.all_events)
-
+        current_event = None
         while True:
             time_elapsed = time.time() - self.start_time
             print('Time elapsed {:2f} sec....'.format(time_elapsed), end='\r')
 
+            # Keep checking when new calls are made
+            # [TODO: multi-threading] should be done on a separate thread in a thread-safe manner
             if next_event_id < num_events_total:
                 next_event_available_ts = self.all_events[next_event_id].timestamp
-            # if next event occurred at current time stamp, make it available from the queue
-            if next_event_id < num_events_total and (next_event_available_ts - time_elapsed) <= 0.0001:
-                # make it available
-                self.call_queue.append(self.all_events[next_event_id])
-                self.all_events[next_event_id].display(message='* Call made')
-                # self.rearrange_call_queue()
-                next_event_id += 1
+                # if next event occurred at current time stamp, make it available from the queue
+                if next_event_available_ts - time_elapsed <= 0.0001:
+                    # make it available
+                    self.call_queue.append(self.all_events[next_event_id])
+                    self.all_events[next_event_id].display(message='* Call made')
+                    self.rearrange_call_queue()
+                    next_event_id += 1
 
+            # if call queue has elements, execute the next call in queue
             if len(self.call_queue) > 0:
                 current_event = self.call_queue[0]
-
                 if not self.moving:
+                    # self.display_queue(self.call_queue)
                     time_to_reach_next = self.set_next_floor(current_event.floor, time_elapsed)
                 else:
+                    # [TODO] update current floor while elevator moving to keep track of nearby floors
+
                     # elevator reached next floor and waiting to take passengers
                     if (time_to_reach_next - time_elapsed) <= 0.0001:
                         order.append(current_event.floor)
@@ -161,19 +166,16 @@ class Elevator:
                             time.sleep(self.static)
                             print('(De-Boarded) at floor {}!'.format(self.current_floor))
 
-                            # [TODO] check if current floor in call list,
-                            # [TODO] if it is make it as priority boarding
-
                         self.rearrange_call_queue()
                         self.moving = False
 
-                        # time_to_reach_next = self.set_next_floor(current_event.dst, time_elapsed)
             elif next_event_id == num_events_total:
                 break
 
         # all floors scheduled and called
         print('Simulation done!')
-        print('Order of floors visited:', order)
+        print('Order of floors visited:')
+        self.display_floors_visited(order)
 
     def set_next_floor(self, floor, time_elapsed):
         self.dest_floor = floor
@@ -186,7 +188,7 @@ class Elevator:
             direction = 0
         else:
             direction = 1
-        new_event = e.Event(floor=dst, up=direction, dst=-1, timestamp=time_elapsed)
+        new_event = e.Event(floor=dst, up=direction, dst=-1, timestamp=time_elapsed, called=True)
         self.dest_queue.append(new_event)
 
         return
@@ -198,20 +200,28 @@ class Elevator:
         valid_event_distance = {}
         # else put all other events in a list
         invalid_events = []
-        dest_present = False
-        if len(self.dest_queue) > 0:
+        priority_call = False
+        while len(self.dest_queue) > 0:
+            dest_present = False
+            priority_call = True
             priority_dest = self.dest_queue[0]
             self.dest_queue.popleft()
+            # print('###Destination queue dequeued floor {}!'.format(priority_dest.floor))
 
             # iterate through events already in call queue
             for scheduled_events in self.call_queue:
                 # if call to destination already exists in queue
-                if scheduled_events.dst == priority_dest.floor:
+                if scheduled_events.floor == priority_dest.floor and scheduled_events.up == priority_dest.up:
                     dest_present = True
+                    valid_event_distance[scheduled_events] = abs(self.current_floor - scheduled_events.floor)
 
                 # check which events are on-way of destination and add it to the final queue
-                if (scheduled_events.floor in range(self.current_floor, priority_dest.floor)
-                        and scheduled_events.up == priority_dest.up):
+                if self.current_floor < priority_dest.floor:
+                    floor_range = list(range(self.current_floor, priority_dest.floor))
+                else:
+                    floor_range = list(range(self.current_floor, priority_dest.floor, -1))
+
+                if (scheduled_events.floor in floor_range) and scheduled_events.up == priority_dest.up:
                     valid_event_distance[scheduled_events] = abs(self.current_floor - scheduled_events.floor)
                 else:
                     invalid_events.append(scheduled_events)
@@ -220,8 +230,9 @@ class Elevator:
             if not dest_present:
                 valid_event_distance[priority_dest] = abs(self.current_floor - priority_dest.floor)
 
-        # [TODO] if destination queue is empty, check if current floor in queue and prioritize it
-        else:
+        # if destination queue is empty and elevator stopped at a floor (to de-board),
+        # check if current floor in queue and prioritize it
+        if not priority_call and not self.moving:
             # iterate through events already in call queue
             for scheduled_events in self.call_queue:
                 # check if current floor in queue to board
@@ -229,7 +240,12 @@ class Elevator:
                     valid_event_distance[scheduled_events] = abs(self.current_floor - scheduled_events.floor)
                 else:
                     invalid_events.append(scheduled_events)
-
+        else:
+            # a new call was inserted; check if elevator is nearby
+            # re-organize the queue to take new event into account while moving
+            for scheduled_events in self.call_queue:
+                valid_event_distance[scheduled_events] = abs(self.current_floor - scheduled_events.floor)
+            self.moving = False
 
         temp_queue = deque()
 
@@ -251,4 +267,12 @@ class Elevator:
 
     def log_time(self):
         self.start_time = time.time()
+
+    def display_floors_visited(self, order):
+        prev_floor = -1
+        for floor in order:
+            if not floor == prev_floor:
+                print('{}->'.format(floor), end='')
+                prev_floor = floor
+        print('fin!')
 
