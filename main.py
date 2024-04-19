@@ -1,7 +1,9 @@
+import time
+
 import elevator
 import random
 if __name__ == '__main__':
-    elevator = elevator.Elevator()
+    elevator = elevator.Elevator(numFloor=10)
     print('Elevator created!')
     elevator.info()
     print('***************************************')
@@ -15,20 +17,31 @@ if __name__ == '__main__':
     ## if timestamps specified as None, random timestamps will be generated for each call
     '''
 
-    calls = [{'input_floors': ["0u9"],
-              'timestamps': None},
-             {'input_floors': ["3d0", "5u7"],
-              'timestamps': None},
-             {'input_floors': ["4u6", "3d0", "0u9", "5u7"],
-              'timestamps': list(range(0, 4*10, 10))},
-             {'input_floors': ["4u6", "3d0", "0u9", "5u7"],
+    # calls = [{'input_floors': ["0u9"],
+    #           'timestamps': None},
+    #          {'input_floors': ["3d0", "5u7"],
+    #           'timestamps': None},
+    #          {'input_floors': ["4u6", "3d0", "0u9", "5u7"],
+    #           'timestamps': list(range(0, 4*10, 10))},
+    #          {'input_floors': ["4u6", "3d0", "0u9", "5u7"],
+    #           'timestamps': None},
+    #          {'input_floors': ["4u6", "3d0", "0u9", "5u7", "3d2", "4u7", "9d2"],
+    #           'timestamps': list(range(0, 7*3, 3))},
+    #          {'input_floors': ["4u6", "3d0", "0u9", "5u7", "3d2", "4u7", "9d2"],
+    #           'timestamps': [8, 20, 30, 32, 45, 50, 57]},
+    #          {'input_floors': ["4u6", "3d0", "0u9", "5u7", "3d2", "4u7", "9d2"],
+    #           'timestamps': None},
+    #          ]
+    calls = [{'input_floors': ["9d2"],
               'timestamps': None},
              {'input_floors': ["4u6", "3d0", "0u9", "5u7", "3d2", "4u7", "9d2"],
-              'timestamps': list(range(0, 7*3, 3))},
+              'timestamps': list(range(0, 7 * 3, 3))},
+             {'input_floors': ["4u6", "3d0", "0u9", "5u7", "3d2", "4u7", "9d2"],
+              'timestamps': None},
              {'input_floors': ["4u6", "3d0", "0u9", "5u7", "3d2", "4u7", "9d2"],
               'timestamps': [8, 20, 30, 32, 45, 50, 57]},
              {'input_floors': ["4u6", "3d0", "0u9", "5u7", "3d2", "4u7", "9d2"],
-              'timestamps': None},
+              'timestamps': [17, 24, 47, 48, 54, 59, 69]},
              ]
 
     for call in calls:
@@ -41,7 +54,8 @@ if __name__ == '__main__':
 
         print('Calls: ', input_floors)
         print('Made at times: ', timestamps)
-        input('Press [Enter] to start simulation...')
+        # input('Press [Enter] to start simulation...')
+        time.sleep(1)
         elevator.schedule_calls(input_floors, timestamps)
 
         elevator.run_elevator()

@@ -51,15 +51,15 @@ class Elevator:
 
     def check_valid_call(self, call):
         if len(call) != 3:
-            print('Failure 1')
+            print('Failure 1! Wrong format!!')
             return False
 
         if int(call[0]) not in range(0, self.numFloor) or int(call[2]) not in range(0, self.numFloor):
-            print('Failure 2')
+            print('Failure 2! Floor out of range!!')
             return False
 
         if call[1] not in ['u', 'd']:
-            print('Failure 3')
+            print('Failure 3! Wrong format!!')
             return False
 
         if int(call[0]) == 0 and call[1] == 'd':
@@ -67,7 +67,15 @@ class Elevator:
             return False
 
         if int(call[0]) == self.numFloor-1 and call[1] == 'u':
-            print('Floor {} can only go up!'.format(self.numFloor-1))
+            print('Floor {} can only go down!'.format(self.numFloor-1))
+            return False
+
+        if call[1] == 'u' and int(call[0]) > int(call[2]):
+            print('Call made to go up! Going down instead!!')
+            return False
+
+        if call[1] == 'd' and int(call[0]) < int(call[2]):
+            print('Call made to go down! Going up instead!!')
             return False
 
         return True
